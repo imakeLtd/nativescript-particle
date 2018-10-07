@@ -47,6 +47,7 @@ export interface TNSParticleDevice {
   id: string;
   name: string;
   status: string;
+  connected : Boolean;
   type: TNSParticleDeviceType;
   functions: Array<string>;
   variables: Array<TNSParticleDeviceVariable>;

@@ -48,6 +48,7 @@ class MyTNSParticleDevice implements TNSParticleDevice {
   id: string;
   name: string;
   status: string;
+  connected : Boolean;
   type: TNSParticleDeviceType;
   functions: Array<string>;
   variables: Array<TNSParticleDeviceVariable>;
@@ -57,6 +58,7 @@ class MyTNSParticleDevice implements TNSParticleDevice {
     this.id = nativeDevice.id;
     this.name = nativeDevice.name;
     this.status = nativeDevice.status;
+    this.connected = nativeDevice.connected;
     this.type = getDeviceType(nativeDevice.type);
     this.functions = toJsArray(nativeDevice.functions);
     this.variables = toJsonVariables(nativeDevice.variables);
@@ -146,10 +148,11 @@ export class Particle implements TNSParticleAPI {
           reject(error.localizedDescription);
           return;
         }
-
         const devices = [];
-        for (let i = 0; i < particleDevices.count; i++) {
-          devices.push(new MyTNSParticleDevice(particleDevices.objectAtIndex(i)));
+        if(particleDevices){
+          for (let i = 0; i < particleDevices.count; i++) {
+            devices.push(new MyTNSParticleDevice(particleDevices.objectAtIndex(i)));
+          }
         }
         resolve(devices);
       });
