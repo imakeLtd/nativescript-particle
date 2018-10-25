@@ -29,8 +29,7 @@ dependencies {
     compile "com.jakewharton:butterknife:8.8.1"
     compile "com.madgag.spongycastle:core:1.58.0.0"
 
-    compile files('device-setup-0.6.2.aar') {
-    // compile("io.particle:devicesetup:0.6.0") {
-        transitive = false
-    }
+    // compile files('device-setup-0.6.2.aar') {
+    //     transitive = false
+    // }
 }
