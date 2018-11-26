@@ -43,19 +43,28 @@ export interface TNSParticleDeviceVariable {
   type: VariableType;
 }
 
+export interface TNSParticleEvent {
+  prefix: string;
+  event: string;
+  data: string;
+  date: Date;
+  deviceID: string;
+}
+
 export interface TNSParticleDevice {
   id: string;
   name: string;
   status: string;
-  connected : Boolean;
+  connected: boolean;
   type: TNSParticleDeviceType;
   functions: Array<string>;
   variables: Array<TNSParticleDeviceVariable>;
-  eventIds: number[];
+  eventIds: Map<string /* prefix */, any /* handler id */>;
+  rename: (name: string) => Promise<void>;
   getVariable: (name: string) => Promise<any>;
   callFunction: (name: string, ...args) => Promise<number>;
-  subscribe: (name: string, eventHandler: any) => void;
-  unsubscribe: () => void;
+  subscribe: (prefix: string, eventHandler: (event: TNSParticleEvent) => void) => void;
+  unsubscribe: (prefix: string) => void;
 }
 
 export interface TNSParticleLoginOptions {
@@ -65,13 +74,27 @@ export interface TNSParticleLoginOptions {
 
 export interface TNSParticleAPI {
   login(options: TNSParticleLoginOptions): Promise<void>;
+
   loginWithToken(token: string): void;
+
   setOAuthConfig(id: string, secret: string): void;
+
   logout(): void;
+
   isAuthenticated(): boolean;
+
   accessToken(): string;
+
   listDevices(): Promise<Array<TNSParticleDevice>>;
+
   startDeviceSetupWizard(): Promise<boolean>;
+
   getDeviceSetupCustomizer(): any;
+
+  subscribe(prefix: string, eventHandler: (event: TNSParticleEvent) => void): void;
+
+  unsubscribe(prefix: string): void;
+
+  publish(name: string, data: string, isPrivate: boolean, ttl?: number): Promise<void>;
 }
 

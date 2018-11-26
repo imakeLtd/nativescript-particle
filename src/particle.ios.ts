@@ -4,6 +4,7 @@ import {
   TNSParticleDevice,
   TNSParticleDeviceType,
   TNSParticleDeviceVariable,
+  TNSParticleEvent,
   TNSParticleLoginOptions
 } from "./particle.common";
 
@@ -48,11 +49,11 @@ class MyTNSParticleDevice implements TNSParticleDevice {
   id: string;
   name: string;
   status: string;
-  connected : Boolean;
+  connected: boolean;
   type: TNSParticleDeviceType;
   functions: Array<string>;
   variables: Array<TNSParticleDeviceVariable>;
-  eventIds: Array<number> = [];
+  eventIds: Map<string /* prefix */, any /* handler id */>;
 
   constructor(public nativeDevice: ParticleDevice) {
     this.id = nativeDevice.id;
@@ -62,6 +63,15 @@ class MyTNSParticleDevice implements TNSParticleDevice {
     this.type = getDeviceType(nativeDevice.type);
     this.functions = toJsArray(nativeDevice.functions);
     this.variables = toJsonVariables(nativeDevice.variables);
+    this.eventIds = new Map();
+  }
+
+  rename(name: string): Promise<void> {
+    return new Promise<any>((resolve, reject) => {
+      this.nativeDevice.renameCompletion(
+          name,
+          error => error ? reject(error.localizedDescription) : resolve());
+    });
   }
 
   getVariable(name: string): Promise<any> {
@@ -85,27 +95,45 @@ class MyTNSParticleDevice implements TNSParticleDevice {
     });
   }
 
-  subscribe(name: string, eventHandler: any): void {
-    const id = this.nativeDevice.subscribeToEventsWithPrefixHandler(name, (event: ParticleEvent, error: NSError) => {
-      if (!error) {
-        if (event.data) eventHandler(event.data);
-      } else {
-        console.log(`Error subscribing to event: ${error}`);
-      }
-    });
-    this.eventIds.push(id);
+  subscribe(prefix: string, eventHandler: (event: TNSParticleEvent) => void): void {
+    if (this.eventIds.has(prefix)) {
+      console.log(`Already subscribed for prefix '${prefix}' - not registering another event handler.`);
+      return;
+    }
+
+    const id = this.nativeDevice.subscribeToEventsWithPrefixHandler(
+        prefix,
+        (event: ParticleEvent, error: NSError) => {
+          if (!error) {
+            event.data && eventHandler({
+              prefix,
+              event: event.event,
+              data: event.data,
+              date: event.time,
+              deviceID: event.deviceID
+            });
+          } else {
+            console.log(`Error subscribing to event: ${error}`);
+          }
+        });
+
+    this.eventIds.set(prefix, id);
   }
 
-  unsubscribe(): void {
-    this.eventIds.forEach(element => {
-      this.nativeDevice.unsubscribeFromEventWithID(element);
-    });
+  unsubscribe(prefix: string): void {
+    if (!this.eventIds.has(prefix)) {
+      console.log(`No handler registered from prefix '${prefix}' - skipping unsubscribe`);
+      return;
+    }
+
+    this.nativeDevice.unsubscribeFromEventWithID(this.eventIds.get(prefix));
+    this.eventIds.delete(prefix);
   }
 }
 
 export class Particle implements TNSParticleAPI {
-
   private wizardDelegate: ParticleSetupControllerDelegateImpl;
+  private eventIds: Map<string /* prefix */, any /* handler id */> = new Map();
 
   public login(options: TNSParticleLoginOptions): Promise<void> {
     return new Promise<void>((resolve, reject) => {
@@ -149,7 +177,7 @@ export class Particle implements TNSParticleAPI {
           return;
         }
         const devices = [];
-        if(particleDevices){
+        if (particleDevices) {
           for (let i = 0; i < particleDevices.count; i++) {
             devices.push(new MyTNSParticleDevice(particleDevices.objectAtIndex(i)));
           }
@@ -157,6 +185,52 @@ export class Particle implements TNSParticleAPI {
         resolve(devices);
       });
     });
+  }
+
+  public publish(name: string, data: string, isPrivate: boolean, ttl: number = 60): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      ParticleCloud.sharedInstance().publishEventWithNameDataIsPrivateTtlCompletion(
+          name,
+          data,
+          isPrivate,
+          ttl,
+          (error => error ? reject(error.localizedDescription) : resolve()));
+    });
+  }
+
+  public subscribe(prefix: string, eventHandler: (event: TNSParticleEvent) => void): void {
+    if (this.eventIds.has(prefix)) {
+      console.log(`There's already a handler registered for prefix '${prefix}' - skipping subscribe`);
+      return;
+    }
+
+    const id = ParticleCloud.sharedInstance().subscribeToAllEventsWithPrefixHandler(
+        prefix,
+        (event: ParticleEvent, error: NSError) => {
+          if (!error) {
+            event.data && eventHandler({
+              prefix,
+              event: event.event,
+              data: event.data,
+              date: event.time,
+              deviceID: event.deviceID
+            });
+          } else {
+            console.log(`Error subscribing to event: ${error}`);
+          }
+        });
+
+    this.eventIds.set(prefix, id);
+  }
+
+  public unsubscribe(prefix: string): void {
+    if (!this.eventIds.has(prefix)) {
+      console.log(`No handler registered from prefix '${prefix}' - skipping unsubscribe`);
+      return;
+    }
+
+    ParticleCloud.sharedInstance().unsubscribeFromEventWithID(this.eventIds.get(prefix));
+    this.eventIds.delete(prefix);
   }
 
   public startDeviceSetupWizard(): Promise<boolean> {
@@ -191,11 +265,9 @@ class ParticleSetupControllerDelegateImpl extends NSObject implements ParticleSe
   }
 
   public particleSetupViewControllerDidFinishWithResultDevice(controller: ParticleSetupMainController, result: ParticleSetupMainControllerResult, device: ParticleDevice): void {
-    console.log("particleSetupViewControllerDidFinishWithResultDevice, result: " + result);
     this.cb && this.cb(result === ParticleSetupMainControllerResult.Success);
   }
 
   particleSetupViewControllerDidNotSucceeedWithDeviceID(controller: ParticleSetupMainController, deviceID: string): void {
-    console.log("particleSetupViewControllerDidFinishWithResultDevice");
   }
 }
