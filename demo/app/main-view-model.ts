@@ -4,10 +4,17 @@ import { ObservableArray } from "tns-core-modules/data/observable-array";
 import { prompt } from "tns-core-modules/ui/dialogs";
 
 /************ SET THESE FOR QUICK LOGIN ************/
-const PARTICLE_USERNAME = "eddyverbruggen@gmail.com";
-const PARTICLE_PASSWORD = "XS4alles";
+// const PARTICLE_USERNAME = "marko.h@imake.pro"; //"eddyverbruggen@gmail.com";
+// const PARTICLE_PASSWORD = "Rubberduck99"; //"XS4alles";
+// const PARTICLE_USERNAME = "eddyverbruggen@gmail.com";
+// const PARTICLE_PASSWORD = "XS4alles";
+const PARTICLE_USERNAME = null;
+const PARTICLE_PASSWORD = null;
 /************ ALT LOGIN WITH TOKEN ************/
-const PARTICLE_TOKEN = undefined;
+const PARTICLE_TOKEN = '242b1f03587e6abee2315ce8ad4a32d72d2ae515';
+//242b1f03587e6abee2315ce8ad4a32d72d2ae515 - marko.heyns
+//73ec5336a7d781d6d09d1bf8510e780015970ec2 - marko.h admin
+//a68c01a913f0a3de1a1197a44d3f40bf4007303c - marko.h brew.gf
 /************ SET PARTICLE EVENT NAME ************/
 const PARTICLE_EVENT_NAME = undefined;
 
@@ -37,6 +44,7 @@ export class HelloWorldModel extends Observable {
   }
 
   login(): void {
+    this.logout();
     if (PARTICLE_USERNAME && PARTICLE_PASSWORD) {
       this.doLogin(PARTICLE_USERNAME, PARTICLE_PASSWORD);
     } else if (PARTICLE_TOKEN) {
@@ -148,6 +156,7 @@ export class HelloWorldModel extends Observable {
 
   startwizard(): void {
     console.log("start wizard tapped");
+    console.log(this.particle.accessToken());
     this.particle.startDeviceSetupWizard().then(success => console.log("wizard callback: " + success));
   }
 }
