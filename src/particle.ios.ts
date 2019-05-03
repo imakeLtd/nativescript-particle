@@ -74,6 +74,13 @@ class MyTNSParticleDevice implements TNSParticleDevice {
     });
   }
 
+  unclaim(): Promise<void> {
+    return new Promise<any>((resolve, reject) => {
+      this.nativeDevice.unclaim(
+          error => error ? reject(error.localizedDescription) : resolve());
+    });
+  }
+
   getVariable(name: string): Promise<any> {
     return new Promise<any>((resolve, reject) => {
       this.nativeDevice.getVariableCompletion(

@@ -73,6 +73,7 @@ export class Particle implements TNSParticleAPI {
     io.particle.android.sdk.cloud.ParticleCloudSDK.getCloud().logOut();
     worker && worker.terminate();
     eventWorker && eventWorker.terminate();
+    eventWorker = worker = undefined;
   }
 
   public publish(name: string, data: string, isPrivate: boolean, ttl: number = 60): Promise<void> {
@@ -146,6 +147,7 @@ export class Particle implements TNSParticleAPI {
           // since the worker strips the functions, we're adding 'em back here as proxies to those implemented in the worker
           devices.map(device => {
             device.rename = (name: string): Promise<void> => this.renameDevice(device.id, name);
+            device.unclaim = (): Promise<void> => this.unclaimDevice(device.id);
             device.callFunction = (name: string, args): Promise<number> => this.callFunction(device.id, name, args);
             device.getVariable = (name: string): Promise<any> => this.getVariable(device.id, name);
             device.subscribe = (prefix: string, eventHandler: (event: TNSParticleEvent) => void): void => this.subscribeDevice(device.id, prefix, eventHandler);
@@ -201,6 +203,22 @@ export class Particle implements TNSParticleAPI {
 
       worker.postMessage({
         action: "rename",
+        options: {
+          deviceId,
+          name
+        }
+      });
+
+      worker.onmessage = msg => msg.data.success ? resolve() : reject(msg.data.error);
+    });
+  }
+
+  private unclaimDevice(deviceId: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      this.initWorkerIfNeeded();
+
+      worker.postMessage({
+        action: "unclaim",
         options: {
           deviceId,
           name

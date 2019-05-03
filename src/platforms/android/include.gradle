@@ -20,7 +20,6 @@ dependencies {
     compile("io.particle:cloudsdk:0.5.1") {
         transitive = false
     }
-
     // for io.particle:devicesetup
     compile "uk.co.chrisjenx:calligraphy:2.3.0"
     compile "com.google.dagger:dagger:2.15"

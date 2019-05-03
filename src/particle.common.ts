@@ -8,7 +8,8 @@ export type TNSParticleDeviceType =
     | "DigistumpOak"
     | "RedBearDuo"
     | "Bluz"
-    | "GFConical";
+    | "GFConical"
+    | "GF70L";
 
 export type VariableType = "INT" | "DOUBLE" | "STRING";
 
@@ -32,6 +33,8 @@ export function getDeviceType(id: number): TNSParticleDeviceType {
       return "Bluz";
     case 7822:
       return "GFConical";
+    case 8187:
+      return "GF70L";
     default:
       console.log(`Unknown device type (id: ${id})`);
       return "Unknown";
@@ -61,6 +64,7 @@ export interface TNSParticleDevice {
   variables: Array<TNSParticleDeviceVariable>;
   eventIds: Map<string /* prefix */, any /* handler id */>;
   rename: (name: string) => Promise<void>;
+  unclaim: () => Promise<void>;
   getVariable: (name: string) => Promise<any>;
   callFunction: (name: string, ...args) => Promise<number>;
   subscribe: (prefix: string, eventHandler: (event: TNSParticleEvent) => void) => void;

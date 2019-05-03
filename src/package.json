@@ -1,13 +1,13 @@
 {
   "name": "nativescript-particle",
-  "version": "2.0.2",
+  "version": "2.0.4",
   "description": "Control your Particle.io devices from a NativeScript app!",
   "main": "particle",
   "typings": "index.d.ts",
   "nativescript": {
     "platforms": {
-      "android": "4.0.0",
-      "ios": "4.0.0"
+      "android": "5.2.0",
+      "ios": "5.2.0"
     }
   },
   "scripts": {
@@ -21,12 +21,14 @@
     "demo.ios": "npm run tsc && cd ../demo && tns run ios --syncAllFiles",
     "demo.ios.bundled": "npm run tsc && cd ../demo && tns run ios --bundle --syncAllFiles --emulator",
     "demo.android": "npm run tsc && cd ../demo && tns run android --syncAllFiles",
+    "demo.android.basic": "cd ../demo && tns run android",
     "demo.android.bundled": "npm run tsc && cd ../demo && tns run android --bundle --syncAllFiles",
     "demo.reset": "cd ../demo && npx rimraf -- hooks node_modules platforms package-lock.json",
     "plugin.prepare": "npm run build && cd ../demo && tns plugin remove nativescript-particle && tns plugin add ../src",
     "clean": "npm run demo.reset && npx rimraf -- node_modules package-lock.json && npm i",
     "ci.tslint": "npm i && tslint '**/*.ts' --config '../tslint.json' --exclude '**/node_modules/**' --exclude '**/platforms/**'",
     "prepack": "npm run build.native",
+    "go": "npm run clean && npm run plugin.prepare && npm run demo.android",
     "generate-typings.ios": "cd ../demo && TNS_DEBUG_METADATA_PATH=\"$(pwd)/metadata\" tns build ios && TNS_TYPESCRIPT_DECLARATIONS_PATH=\"$(pwd)/typings\" tns build ios && echo 'Now look for your library typings in demo/typings. Afterwards, remove that folder, and the (intermediate) metadata-* folders.'",
     "generate-typings.android": "echo '##### Download the latest relevant .aar file from https://mvnrepository.com/artifact/io.particle, rename .aar to .zip and extract it. Then move classes.jar to the plugin /src folder' && java -jar ../../android-dts-generator/dts-generator/build/libs/dts-generator.jar -input ./classes.jar -output platforms/android/typings && rimraf classes.jar && echo '##### Done! Deleted src/classes.jar, and generated typings in src/platforms/android/typings/'"
   },
@@ -55,7 +57,7 @@
   "homepage": "https://github.com/EddyVerbruggen/nativescript-particle",
   "readmeFilename": "README.md",
   "devDependencies": {
-    "tns-core-modules": "~4.2.0",
+    "tns-core-modules": "~5.2.1",
     "tns-platform-declarations": "~4.2.0",
     "typescript": "~2.8.2",
     "prompt": "^1.0.0",

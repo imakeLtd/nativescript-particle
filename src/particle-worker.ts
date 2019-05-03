@@ -45,6 +45,12 @@ const renameDevice = (device: MyTNSParticleDevice, name: string): void => {
       .catch(error => (<any>global).postMessage({success: false, error}));
 };
 
+const unclaimDevice = (device: MyTNSParticleDevice): void => {
+  device.unclaim()
+      .then(result => (<any>global).postMessage({success: true}))
+      .catch(error => (<any>global).postMessage({success: false, error}));
+};
+
 const publish = (name: string, data: string, isPrivate: boolean, ttl: number): void => {
   io.particle.android.sdk.cloud.ParticleCloudSDK.getCloud().publishEvent(
       name,
@@ -68,6 +74,9 @@ const getDevice = (id: string): MyTNSParticleDevice => {
     return;
   } else if (request.action === "rename") {
     renameDevice(getDevice(request.options.deviceId), request.options.name);
+    return;
+  } else if (request.action === "unclaim") {
+    unclaimDevice(getDevice(request.options.deviceId));
     return;
   } else if (request.action === "callFunction") {
     callFunction(getDevice(request.options.deviceId), request.options.name, request.options.args);

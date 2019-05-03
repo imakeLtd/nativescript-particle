@@ -34,6 +34,13 @@ export class MyTNSParticleDevice implements TNSParticleDevice {
     });
   }
 
+  unclaim(): Promise<void> {
+    return new Promise<any>((resolve, reject) => {
+      this.particleDevice.unclaim();
+      resolve();
+    });
+  }
+
   getVariable(name: string): Promise<any> {
     return new Promise<any>((resolve, reject) => {
       try {
