@@ -220,8 +220,7 @@ export class Particle implements TNSParticleAPI {
       worker.postMessage({
         action: "unclaim",
         options: {
-          deviceId,
-          name
+          deviceId
         }
       });
 
