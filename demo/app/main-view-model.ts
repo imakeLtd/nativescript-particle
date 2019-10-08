@@ -193,8 +193,9 @@ export class HelloWorldModel extends Observable {
 
   startwizard(): void {
     console.log("start wizard tapped");
-    console.log(this.particle.accessToken());
-    this.particle.startDeviceSetupWizard().then(success => console.log("wizard callback: " + success));
+    this.particle.startDeviceSetupWizard()
+        .then(success => console.log("wizard callback: " + success))
+        .catch(err => console.log("wizard err: " + err));
   }
 
   renameDevice(): void {

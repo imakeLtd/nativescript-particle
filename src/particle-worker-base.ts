@@ -115,6 +115,13 @@ export class MyTNSParticleDevice implements TNSParticleDevice {
     this.particleDevice.unsubscribeFromEvents(this.eventIds.get(handlerId));
     this.eventIds.delete(handlerId);
   }
+
+  unclaim(): Promise<void> {
+    return new Promise<any>((resolve, reject) => {
+      this.particleDevice.unclaim();
+      resolve();
+    });
+  }
 }
 
 

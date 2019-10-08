@@ -1,6 +1,6 @@
 {
   "name": "nativescript-particle",
-  "version": "2.0.4",
+  "version": "2.2.4",
   "description": "Control your Particle.io devices from a NativeScript app!",
   "main": "particle",
   "typings": "index.d.ts",
@@ -12,17 +12,16 @@
   },
   "scripts": {
     "tsc": "tsc -skipLibCheck",
-    "build": "npm run tsc && npm run build.native",
+    "build": "npm i && npm run tsc && npm run build.native",
     "build.native": "node scripts/build-native.js",
     "postclone": "npm i && cd ../demo && npm i && npx rimraf -- package-lock.json && cd ../src",
     "test.android": "npm run tsc && npm run tslint && cd ../demo && tns build android && tns test android --justlaunch",
     "test.ios": "npm run tsc && npm run tslint && cd ../demo && tns build ios && tns test ios --justlaunch",
     "tslint": "cd .. && tslint \"**/*.ts\" --config tslint.json --exclude '**/node_modules/**' --exclude '**/platforms/**'",
-    "demo.ios": "npm run tsc && cd ../demo && tns run ios --syncAllFiles",
-    "demo.ios.bundled": "npm run tsc && cd ../demo && tns run ios --bundle --syncAllFiles --emulator",
-    "demo.android": "npm run tsc && cd ../demo && tns run android --syncAllFiles",
-    "demo.android.basic": "cd ../demo && tns run android",
-    "demo.android.bundled": "npm run tsc && cd ../demo && tns run android --bundle --syncAllFiles",
+    "demo.ios": "npm run build && cd ../demo && tns run ios",
+    "demo.ios.bundled": "npm run tsc && cd ../demo && tns run ios --bundle --emulator",
+    "demo.android": "npm run build && cd ../demo && tns run android",
+    "demo.android.bundled": "npm run tsc && cd ../demo && tns run android --bundle",
     "demo.reset": "cd ../demo && npx rimraf -- hooks node_modules platforms package-lock.json",
     "plugin.prepare": "npm run build && cd ../demo && tns plugin remove nativescript-particle && tns plugin add ../src",
     "clean": "npm run demo.reset && npx rimraf -- node_modules package-lock.json && npm i",
@@ -57,14 +56,14 @@
   "homepage": "https://github.com/EddyVerbruggen/nativescript-particle",
   "readmeFilename": "README.md",
   "devDependencies": {
-    "tns-core-modules": "~5.2.1",
-    "tns-platform-declarations": "~4.2.0",
-    "typescript": "~2.8.2",
+    "nativescript-dev-typescript": "~0.9.0",
+    "tns-core-modules": "~6.0.0",
+    "tns-platform-declarations": "~6.0.0",
+    "typescript": "3.4.5",
     "prompt": "^1.0.0",
     "rimraf": "^2.6.2",
     "tslint": "^5.11.0",
-    "semver": "^5.5.0"
+    "semver": "^6.1.0"
   },
-  "dependencies": {},
   "bootstrapper": "nativescript-plugin-seed"
 }
