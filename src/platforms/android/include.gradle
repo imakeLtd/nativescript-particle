@@ -17,9 +17,9 @@ dependencies {
     implementation "com.squareup.okhttp:okhttp:2.7.5"
     implementation "com.google.code.gson:gson:2.8.2"
 
-    implementation("io.particle:cloudsdk:0.5.1") {
-        transitive = false
-    }
+    // implementation("io.particle:cloudsdk:0.5.1") {
+    //     transitive = false
+    // }
     // for io.particle:devicesetup
     implementation "uk.co.chrisjenx:calligraphy:2.3.0"
     implementation "com.google.dagger:dagger:2.15"

@@ -11,6 +11,7 @@ export class MyTNSParticleDevice implements TNSParticleDevice {
   name: string;
   status: string;
   connected: boolean;
+  productId: number;
   type: TNSParticleDeviceType;
   functions: Array<string>;
   variables: Array<TNSParticleDeviceVariable>;
@@ -21,7 +22,8 @@ export class MyTNSParticleDevice implements TNSParticleDevice {
     this.name = particleDevice.getName();
     this.status = particleDevice.isConnected() ? particleDevice.getStatus() : "offline";
     this.connected = particleDevice.isConnected();
-    this.type = getDeviceType(particleDevice.getProductID());
+    this.productId = particleDevice.getProductID();
+    this.type = getDeviceType(particleDevice.getPlatformID());
     this.functions = toJsArray(particleDevice.getFunctions());
     this.variables = toJsonVariables(particleDevice.getVariables());
     this.eventIds = new Map();
@@ -116,12 +118,6 @@ export class MyTNSParticleDevice implements TNSParticleDevice {
     this.eventIds.delete(handlerId);
   }
 
-  unclaim(): Promise<void> {
-    return new Promise<any>((resolve, reject) => {
-      this.particleDevice.unclaim();
-      resolve();
-    });
-  }
 }
 
 

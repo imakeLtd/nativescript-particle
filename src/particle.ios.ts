@@ -8,6 +8,8 @@ import {
   TNSParticleLoginOptions
 } from "./particle.common";
 
+let _Particle;
+
 const toJsArray = (nativeArray: NSArray<any>): Array<any> => {
   const result: Array<any> = [];
   if (nativeArray) {
@@ -50,6 +52,7 @@ class MyTNSParticleDevice implements TNSParticleDevice {
   name: string;
   status: string;
   connected: boolean;
+  productId: number;
   type: TNSParticleDeviceType;
   functions: Array<string>;
   variables: Array<TNSParticleDeviceVariable>;
@@ -61,12 +64,14 @@ class MyTNSParticleDevice implements TNSParticleDevice {
     this.status = nativeDevice.status;
     this.connected = nativeDevice.connected;
     this.type = getDeviceType(nativeDevice.type);
+    this.productId = nativeDevice.productId;
     this.functions = toJsArray(nativeDevice.functions);
     this.variables = toJsonVariables(nativeDevice.variables);
     this.eventIds = new Map();
   }
 
   rename(name: string): Promise<void> {
+    if (_Particle) _Particle.authIfNeeded(this.productId);
     return new Promise<any>((resolve, reject) => {
       this.nativeDevice.renameCompletion(
           name,
@@ -75,6 +80,7 @@ class MyTNSParticleDevice implements TNSParticleDevice {
   }
 
   unclaim(): Promise<void> {
+    if (_Particle) _Particle.authIfNeeded(this.productId);
     return new Promise<any>((resolve, reject) => {
       this.nativeDevice.unclaim(
           error => error ? reject(error.localizedDescription) : resolve());
@@ -82,6 +88,7 @@ class MyTNSParticleDevice implements TNSParticleDevice {
   }
 
   getVariable(name: string): Promise<any> {
+    if (_Particle) _Particle.authIfNeeded(this.productId);
     return new Promise<any>((resolve, reject) => {
       this.nativeDevice.getVariableCompletion(
           name,
@@ -90,6 +97,7 @@ class MyTNSParticleDevice implements TNSParticleDevice {
   }
 
   callFunction(name: string, ...args): Promise<number> {
+    if (_Particle) _Particle.authIfNeeded(this.productId);
     return new Promise<number>((resolve, reject) => {
       try {
         this.nativeDevice.callFunctionWithArgumentsCompletion(
@@ -103,6 +111,7 @@ class MyTNSParticleDevice implements TNSParticleDevice {
   }
 
   subscribe(prefix: string, eventHandler: (event: TNSParticleEvent) => void): void {
+    if (_Particle) _Particle.authIfNeeded(this.productId);
     if (this.eventIds.has(prefix)) {
       console.log(`Already subscribed for prefix '${prefix}' - not registering another event handler.`);
       return;
@@ -128,6 +137,7 @@ class MyTNSParticleDevice implements TNSParticleDevice {
   }
 
   unsubscribe(prefix: string): void {
+    if (_Particle) _Particle.authIfNeeded(this.productId);
     if (!this.eventIds.has(prefix)) {
       console.log(`No handler registered from prefix '${prefix}' - skipping unsubscribe`);
       return;
@@ -136,18 +146,17 @@ class MyTNSParticleDevice implements TNSParticleDevice {
     this.nativeDevice.unsubscribeFromEventWithID(this.eventIds.get(prefix));
     this.eventIds.delete(prefix);
   }
-
-  unclaim(): Promise<void> {
-    return new Promise<any>((resolve, reject) => {
-      this.nativeDevice.unclaim(
-        error => error ? reject(error.localizedDescription) : resolve());
-    });
-  }
 }
 
 export class Particle implements TNSParticleAPI {
   private wizardDelegate: ParticleSetupControllerDelegateImpl;
   private eventIds: Map<string /* prefix */, any /* handler id */> = new Map();
+  private tokens: any;
+  private currentProduct: number;
+
+  constructor() {
+    _Particle = this;
+  }
 
   public login(options: TNSParticleLoginOptions): Promise<void> {
     return new Promise<void>((resolve, reject) => {
@@ -162,7 +171,11 @@ export class Particle implements TNSParticleAPI {
     });
   }
 
-  public loginWithToken(token: string): void {
+  public loginWithToken(token: string, productId: number): void {
+    if (productId) {
+      this.tokens[productId] = token;
+      this.currentProduct = productId;
+  }
     ParticleCloud.sharedInstance().injectSessionAccessToken(token);
   }
 
@@ -183,8 +196,9 @@ export class Particle implements TNSParticleAPI {
     return ParticleCloud.sharedInstance().accessToken;
   }
 
-  public listDevices(): Promise<Array<TNSParticleDevice>> {
+  public listDevices(productId: number): Promise<Array<TNSParticleDevice>> {
     return new Promise<Array<TNSParticleDevice>>((resolve, reject) => {
+      this.authIfNeeded(productId);
       ParticleCloud.sharedInstance().getDevices((particleDevices: NSArray<ParticleDevice>, error: NSError) => {
         if (error) {
           reject(error.localizedDescription);
@@ -201,8 +215,9 @@ export class Particle implements TNSParticleAPI {
     });
   }
 
-  public publish(name: string, data: string, isPrivate: boolean, ttl: number = 60): Promise<void> {
+  public publish(name: string, data: string, isPrivate: boolean, ttl: number = 60, productId: number): Promise<void> {
     return new Promise<void>((resolve, reject) => {
+      this.authIfNeeded(productId);
       ParticleCloud.sharedInstance().publishEventWithNameDataIsPrivateTtlCompletion(
           name,
           data,
@@ -212,7 +227,8 @@ export class Particle implements TNSParticleAPI {
     });
   }
 
-  public subscribe(prefix: string, eventHandler: (event: TNSParticleEvent) => void): void {
+  public subscribe(prefix: string, eventHandler: (event: TNSParticleEvent) => void, productId: number): void {
+    this.authIfNeeded(productId);
     if (this.eventIds.has(prefix)) {
       console.log(`There's already a handler registered for prefix '${prefix}' - skipping subscribe`);
       return;
@@ -237,7 +253,8 @@ export class Particle implements TNSParticleAPI {
     this.eventIds.set(prefix, id);
   }
 
-  public unsubscribe(prefix: string): void {
+  public unsubscribe(prefix: string, productId: number): void {
+    this.authIfNeeded(productId);
     if (!this.eventIds.has(prefix)) {
       console.log(`No handler registered from prefix '${prefix}' - skipping unsubscribe`);
       return;
@@ -247,13 +264,20 @@ export class Particle implements TNSParticleAPI {
     this.eventIds.delete(prefix);
   }
 
-  public startDeviceSetupWizard(): Promise<boolean> {
+  public startDeviceSetupWizard(productId: number): Promise<boolean> {
     return new Promise<boolean>((resolve, reject) => {
+      this.authIfNeeded(productId);
       const setupController = ParticleSetupMainController.new();
       this.wizardDelegate = ParticleSetupControllerDelegateImpl.createWithOwnerAndCallback(new WeakRef(this), (result: boolean) => resolve(result));
       setupController.delegate = <any>this.wizardDelegate;
       UIApplication.sharedApplication.keyWindow.rootViewController.presentViewControllerAnimatedCompletion(setupController, true, null);
     });
+  }
+
+  public authIfNeeded(productId: number) : void {
+    if (productId && this.tokens[productId] && this.currentProduct !== productId) {
+        ParticleCloud.sharedInstance().injectSessionAccessToken(this.tokens[productId]);
+    }
   }
 
   public getDeviceSetupCustomizer(): any {

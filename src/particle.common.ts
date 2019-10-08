@@ -7,9 +7,7 @@ export type TNSParticleDeviceType =
     | "RaspberryPi"
     | "DigistumpOak"
     | "RedBearDuo"
-    | "Bluz"
-    | "GFConical"
-    | "GF70L";
+    | "Bluz";
 
 export type VariableType = "INT" | "DOUBLE" | "STRING";
 
@@ -31,10 +29,6 @@ export function getDeviceType(id: number): TNSParticleDeviceType {
       return "RedBearDuo";
     case 103:
       return "Bluz";
-    case 7822:
-      return "GFConical";
-    case 8187:
-      return "GF70L";
     default:
       console.log(`Unknown device type (id: ${id})`);
       return "Unknown";
@@ -59,6 +53,7 @@ export interface TNSParticleDevice {
   name: string;
   status: string;
   connected: boolean;
+  productId: number;
   type: TNSParticleDeviceType;
   functions: Array<string>;
   variables: Array<TNSParticleDeviceVariable>;
@@ -69,7 +64,6 @@ export interface TNSParticleDevice {
   callFunction: (name: string, ...args) => Promise<number>;
   subscribe: (prefix: string, eventHandler: (event: TNSParticleEvent) => void) => void;
   unsubscribe: (prefix: string) => void;
-  unclaim: () => Promise<void>;
 }
 
 export interface TNSParticleLoginOptions {
@@ -80,7 +74,7 @@ export interface TNSParticleLoginOptions {
 export interface TNSParticleAPI {
   login(options: TNSParticleLoginOptions): Promise<void>;
 
-  loginWithToken(token: string): void;
+  loginWithToken(token: string, productId: number): void;
 
   setOAuthConfig(id: string, secret: string): void;
 
@@ -90,16 +84,18 @@ export interface TNSParticleAPI {
 
   accessToken(): string;
 
-  listDevices(): Promise<Array<TNSParticleDevice>>;
+  listDevices(productId: number): Promise<Array<TNSParticleDevice>>;
 
-  startDeviceSetupWizard(): Promise<boolean>;
+  startDeviceSetupWizard(productId: number): Promise<boolean>;
 
   getDeviceSetupCustomizer(): any;
 
-  subscribe(prefix: string, eventHandler: (event: TNSParticleEvent) => void): void;
+  subscribe(prefix: string, eventHandler: (event: TNSParticleEvent) => void, productId: number): void;
 
-  unsubscribe(prefix: string): void;
+  unsubscribe(prefix: string, productId: number): void;
 
-  publish(name: string, data: string, isPrivate: boolean, ttl?: number): Promise<void>;
+  publish(name: string, data: string, isPrivate: boolean, ttl: number, productId: number, ): Promise<void>;
+
+  authIfNeeded(productId: number): void;
 }
 

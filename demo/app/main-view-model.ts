@@ -11,13 +11,13 @@ import { prompt } from "tns-core-modules/ui/dialogs";
 const PARTICLE_USERNAME = null;
 const PARTICLE_PASSWORD = null;
 /************ ALT LOGIN WITH TOKEN ************/
-const PARTICLE_TOKEN = '242b1f03587e6abee2315ce8ad4a32d72d2ae515';
+const PARTICLE_TOKEN = '9a49ff03f226249ab42dcb68a817bb92e50bf5f0';
 //242b1f03587e6abee2315ce8ad4a32d72d2ae515 - marko.heyns
 //73ec5336a7d781d6d09d1bf8510e780015970ec2 - marko.h admin
 //a68c01a913f0a3de1a1197a44d3f40bf4007303c - marko.h brew.gf
 /************ SET PARTICLE EVENT NAME ************/
-const PARTICLE_DEVICE_EVENT_NAME = "beamStatus"; // this can be used in case the 'Publish' app is flashed onto the device
-const PARTICLE_EVENT_NAME = "temp";
+const PARTICLE_DEVICE_EVENT_NAME = "activity"; // this can be used in case the 'Publish' app is flashed onto the device
+const PARTICLE_EVENT_NAME = "activity";
 const PARTICLE_EVENT_NAME_ALT = "tempC";
 
 /***************************************************/
