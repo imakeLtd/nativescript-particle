@@ -325,6 +325,7 @@ export class Particle implements TNSParticleAPI {
   public authIfNeeded(productId: number) : void {
     if (productId && this.tokens[productId] && this.currentProduct !== productId) {
         io.particle.android.sdk.cloud.ParticleCloudSDK.getCloud().setAccessToken(this.tokens[productId]);
+        this.currentProduct = productId;
     }
   }
 }

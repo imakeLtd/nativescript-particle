@@ -278,6 +278,7 @@ export class Particle implements TNSParticleAPI {
   public authIfNeeded(productId: number) : void {
     if (productId && this.tokens[productId] && this.currentProduct !== productId) {
         ParticleCloud.sharedInstance().injectSessionAccessToken(this.tokens[productId]);
+        this.currentProduct = productId;
     }
   }
 
