@@ -155,6 +155,7 @@ export class Particle implements TNSParticleAPI {
   private currentProduct: number;
 
   constructor() {
+    this.tokens = {};
     _Particle = this;
   }
 

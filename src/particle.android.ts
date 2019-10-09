@@ -14,6 +14,7 @@ export class Particle implements TNSParticleAPI {
 
   constructor() {
     io.particle.android.sdk.cloud.ParticleCloudSDK.init(utils.ad.getApplicationContext());
+    this.tokens = {};
   }
 
   private initWorkerIfNeeded(productId): void {
@@ -38,13 +39,13 @@ export class Particle implements TNSParticleAPI {
 
       eventWorker[productId].onmessage = msg => {
         if (msg.data.success) {
-          console.log(">> success.. " + msg.data.handlerId);
+          // console.log(">> success.. " + msg.data.handlerId);
           const handlerId = msg.data.handlerId;
           const handler = this.eventIds.get(handlerId);
-          console.log(">> success.. handler: " + handler);
+          // console.log(">> success.. handler: " + handler);
           handler && handler(msg.data.data);
         } else {
-          console.log("----- no success");
+          // console.log("----- no success");
         }
       };
     }
@@ -59,7 +60,7 @@ export class Particle implements TNSParticleAPI {
         options
       });
 
-        worker['common'].onmessage = msg => msg.data.success ? resolve() : reject(msg.data.error);
+      worker['common'].onmessage = msg => msg.data.success ? resolve() : reject(msg.data.error);
     });
   }
 
@@ -67,7 +68,7 @@ export class Particle implements TNSParticleAPI {
     if (productId) {
       this.tokens[productId] = token;
       this.currentProduct = productId;
-  }
+    }
     io.particle.android.sdk.cloud.ParticleCloudSDK.getCloud().setAccessToken(token);
   }
 
@@ -80,7 +81,8 @@ export class Particle implements TNSParticleAPI {
     io.particle.android.sdk.cloud.ParticleCloudSDK.getCloud().logOut();
     Object.keys(worker).forEach(e => worker[e].terminate());
     Object.keys(eventWorker).forEach(e => eventWorker[e].terminate());
-    eventWorker = worker = undefined;
+    eventWorker = {};
+    worker = {};
   }
 
   public publish(name: string, data: string, isPrivate: boolean, ttl: number = 60, productId: number): Promise<void> {
@@ -143,7 +145,7 @@ export class Particle implements TNSParticleAPI {
 
   public listDevices(productId: number): Promise<Array<TNSParticleDevice>> {
     return new Promise<Array<TNSParticleDevice>>((resolve, reject) => {
-
+      
       this.authIfNeeded(productId);
       this.initWorkerIfNeeded(productId);
       this.initEventWorkerIfNeeded(productId);
@@ -322,7 +324,7 @@ export class Particle implements TNSParticleAPI {
 
   public authIfNeeded(productId: number) : void {
     if (productId && this.tokens[productId] && this.currentProduct !== productId) {
-        ParticleCloud.sharedInstance().injectSessionAccessToken(this.tokens[productId]);
+        io.particle.android.sdk.cloud.ParticleCloudSDK.getCloud().setAccessToken(this.tokens[productId]);
     }
   }
 }
