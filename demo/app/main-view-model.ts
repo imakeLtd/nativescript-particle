@@ -86,7 +86,7 @@ export class HelloWorldModel extends Observable {
   }
 
   private doLoginWithToken(token: string): void {
-    this.particle.loginWithToken(PARTICLE_TOKEN);
+    this.particle.loginWithToken(PARTICLE_TOKEN, 8187);
     this.set(HelloWorldModel.LOGGED_IN_KEY, true);
     this.set(HelloWorldModel.MESSAGE_KEY, "Logged in");
   }
@@ -104,7 +104,7 @@ export class HelloWorldModel extends Observable {
     this.devices.splice(0, this.devices.length);
     this.set(HelloWorldModel.SELECTED_DEVICE_KEY, undefined);
 
-    this.particle.listDevices()
+    this.particle.listDevices(8187)
         .then(devices => {
           if (devices.length === 0) {
             this.set(HelloWorldModel.MESSAGE_KEY, "No devices have been claimed in this account. Go to particle.io for details.");
